@@ -1,0 +1,39 @@
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+== Overview
+It has been awhile since I've done some work in AWS, so I figured I'd create this project to refresh my memory. I'll be leveraging Spring modules to access AWS services. I'll also use Terraform to manage the cloud infrastructure, tearing it down when I no longer need it.
+
+== Prerequisites
+* JDK 21 or greater
+* Maven, if you don't want to use the provided wrapper for some reason.
+* AWS account
+* AWS API keys
+
+== Building
+* compile & run the tests -  `./mvnw --batch-mode --update-snapshots --errors clean install`
+* build the container image -  `./mvnw --batch-mode --update-snapshots --errors spring-boot:build-image`
+
+== Installation
+This is just a couple of tests, so there is nothing to install.
+
+== Tips and Tricks
+=== Starting & Stopping The Application (no containers)
+* start application -  `./mvnw --batch-mode --update-snapshots --errors spring-boot:start`
+* stop application -  `./mvnw --batch-mode --update-snapshots --errors spring-boot:stop`
+
+=== Starting & Stopping The Application (using containers)
+* start application -  `./mvnw --batch-mode --update-snapshots --errors spring-boot:test-run`
+
+== Troubleshooting
+Ad
+== Contributing
+
+== License and Credits
+* This project is licensed under the http://www.apache.org/licenses/[Apache License Version 2.0, January 2004].
+* https://spring.io/blog/2023/06/23/improved-testcontainers-support-in-spring-boot-3-1[Improved Testcontainers Support in Spring Boot 3.1] to learn all about Spring's awesome Testcontainer support
