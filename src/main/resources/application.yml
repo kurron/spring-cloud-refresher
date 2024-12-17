@@ -1,3 +1,5 @@
+---
+# default values
 spring:
   application:
     name: spring-cloud-refresher
