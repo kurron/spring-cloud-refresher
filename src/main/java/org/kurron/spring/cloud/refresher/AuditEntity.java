@@ -9,4 +9,4 @@ import java.time.OffsetDateTime;
 @Table(schema = "public", name = "audit")
 record AuditEntity(@Id Long id,
                    @Column("from_where") String fromWhere,
-                   @Column("when") OffsetDateTime when) {}
+                   @Column("at_time") OffsetDateTime when) {}

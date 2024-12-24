@@ -6,10 +6,12 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: audit
+            remarks: "Append-only record of resource activity"
             columns:
               - column:
                   name: id
                   type: BIGINT
+                  remarks: "Primary key, generated automatically"
                   autoIncrement: true
                   constraints:
                     - primaryKey: true
@@ -17,10 +19,12 @@ databaseChangeLog:
               - column:
                   name: from_where
                   type: VARCHAR(15)
+                  remarks: "Caller's IP address"
                   constraints:
                     - nullable: false
               - column:
-                  name: when
+                  name: at_time
                   type: TIMESTAMP WITH TIME ZONE
+                  remarks: "When the resource was invoked"
                   constraints:
                     - nullable: false
