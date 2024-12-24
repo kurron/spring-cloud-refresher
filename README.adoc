@@ -12,6 +12,8 @@ It has been awhile since I've done some work in AWS, so I figured I'd create thi
 == Prerequisites
 * JDK 21 or greater
 * Maven, if you don't want to use the provided wrapper for some reason.
+* https://developer.hashicorp.com/terraform[Terraform] to automate infrastIructure management
+* https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html[AWS CLI] to manipulate AWS resources
 * AWS account
 * AWS API keys
 
@@ -30,8 +32,17 @@ This is just a couple of tests, so there is nothing to install.
 === Starting & Stopping The Application (using containers)
 * start application -  `./mvnw --batch-mode --update-snapshots --errors spring-boot:test-run`
 
+=== Creating & Destroying Cloud Infrastructure
+* `terraform init` - download and installs required providers
+* `terraform fmt` - automatically updates configurations in the current directory for readability and consistency
+* `terraform validate` - verify the configuration is syntactically valid and internally consistent
+* `terraform plan` - summarizes any changes about to be made
+* `terraform apply` - create the infrastructure
+* `terraform show` - inspect the current Terraform state
+* `terraform destroy` -
+
 == Troubleshooting
-Ad
+
 == Contributing
 
 == License and Credits
