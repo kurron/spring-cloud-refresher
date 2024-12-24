@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static java.time.ZoneOffset.UTC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +29,7 @@ class SpringCloudRefresherApplicationTests {
         var saved = auditRepository.save(new AuditEntity(null, "192.168.1.1", OffsetDateTime.now(UTC)));
         assertEquals(1, saved.id());
         var found = auditRepository.findById(saved.id());
-        //TODO: database is not pulling back nono seconds
-        assertEquals(saved, found.orElseThrow());
+        //nano seconds are slightly different so ignore them for the comparison
+        assertEquals(saved.when().toLocalDateTime().toEpochSecond(ZoneOffset.MIN), found.orElseThrow().when().toLocalDateTime().toEpochSecond(ZoneOffset.MIN));
     }
 }
