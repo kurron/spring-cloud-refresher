@@ -3,6 +3,8 @@ package org.kurron.spring.cloud.refresher;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.kafka.KafkaContainer;
@@ -26,7 +28,7 @@ class TestcontainersConfiguration {
     }
 
     @Bean
-    //@ServiceConnection
+    @ServiceConnection
     LocalStackContainer localStackContainer() {
         return new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"));
     }
