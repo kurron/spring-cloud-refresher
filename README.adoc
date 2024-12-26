@@ -12,7 +12,7 @@ It has been awhile since I've done some work in AWS, so I figured I'd create thi
 == Prerequisites
 * JDK 21 or greater
 * Maven, if you don't want to use the provided wrapper for some reason.
-* https://developer.hashicorp.com/terraform[Terraform] to automate infrastIructure management
+* https://developer.hashicorp.com/terraform[Terraform] to automate infrastIkkructure management
 * https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html[AWS CLI] to manipulate AWS resources
 * AWS account
 * AWS API keys
@@ -40,6 +40,9 @@ This is just a couple of tests, so there is nothing to install.
 * `terraform apply` - create the infrastructure
 * `terraform show` - inspect the current Terraform state
 * `terraform destroy` -
+
+=== Spring Cloud AWS
+The https://spring.io/projects/spring-cloud-aws[Spring Cloud for Amazon Web Services] project is a community-run project and not an official Spring project. We're using it instead of the AWS SDK because it does make life a little bit easier.
 
 == Troubleshooting
 
