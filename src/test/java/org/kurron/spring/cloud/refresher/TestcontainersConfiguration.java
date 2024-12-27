@@ -43,7 +43,11 @@ class TestcontainersConfiguration {
     // this is an interesting way to set the property before all the beans get wired up. Never used this technique before.
     @Bean
     DynamicPropertyRegistrar localStackPropertiesRegistrar(LocalStackContainer container) {
-        return registry -> registry. add("spring.cloud.aws.endpoint", container::getEndpoint);
+        return registry -> {
+            //registry.add("spring.cloud.aws.endpoint", container::getEndpoint);
+            registry.add("spring.cloud.aws.s3.endpoint", container::getEndpoint);
+            registry.add("spring.cloud.aws.s3.region", container::getRegion);
+        };
     }
 
     @Bean
