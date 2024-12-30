@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
@@ -91,6 +92,7 @@ class SpringCloudRefresherApplicationTests {
             this.id = id;
         }
 
+        @DynamoDbAttribute("firstName")
         public String getFirstName() {
             return firstName;
         }
@@ -99,7 +101,7 @@ class SpringCloudRefresherApplicationTests {
             this.firstName = firstName;
         }
 
-        @DynamoDbSortKey
+        @DynamoDbAttribute("lastName")
         public String getLastName() {
             return lastName;
         }
@@ -143,13 +145,11 @@ class SpringCloudRefresherApplicationTests {
         var saved = dynamoDb.save(toSave);
         var allItems = dynamoDb.scanAll(Person.class);
         assertEquals(saved, allItems.stream().findFirst().orElseThrow().items().stream().findFirst().orElseThrow(), "Item was not found!");
-        Person loaded = dynamoDb.load(Key.builder().partitionValue(saved.id).build(), Person.class);
+        var loaded = dynamoDb.load(Key.builder().partitionValue(saved.id).build(), Person.class);
         assertEquals(saved, loaded, "Items don't match!");
-        //var mutated = dynamoDb.update(new Person(saved.id, "Sansa", saved.lastName));
-/*
-        Map<String, AttributeValue> map = Map.of("id", AttributeValue.builder().s(saved.id).build());
-        var getResponse = dynamoDbClient.getItem(GetItemRequest.builder().tableName(table).key(map).build());
-*/
+        loaded.setFirstName("Sansa");
+        var mutated = dynamoDb.update(loaded);
+        assertEquals("Sansa", mutated.firstName);
         var i = 0;
     }
 
