@@ -37,7 +37,7 @@ class TestcontainersConfiguration {
     @Bean
     @ServiceConnection // we're using a custom code to support this -- see spring.factories for a pointer
     static LocalStackContainer localStackContainer() {
-        return new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest")).withServices(LocalStackContainer.Service.S3);
+        return new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest")).withServices(LocalStackContainer.Service.S3, LocalStackContainer.Service.DYNAMODB);
     }
 
     // this is an interesting way to set the property before all the beans get wired up. Never used this technique before.
@@ -46,7 +46,7 @@ class TestcontainersConfiguration {
         return registry -> {
             //registry.add("spring.cloud.aws.endpoint", container::getEndpoint);
             registry.add("spring.cloud.aws.s3.endpoint", container::getEndpoint);
-            registry.add("spring.cloud.aws.s3.region", container::getRegion);
+            registry.add("spring.cloud.aws.dynamodb.endpoint", container::getEndpoint);
         };
     }
 

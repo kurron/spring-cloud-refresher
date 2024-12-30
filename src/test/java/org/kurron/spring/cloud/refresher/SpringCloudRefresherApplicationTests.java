@@ -1,5 +1,6 @@
 package org.kurron.spring.cloud.refresher;
 
+import io.awspring.cloud.dynamodb.DynamoDbOperations;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Operations;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +33,9 @@ class SpringCloudRefresherApplicationTests {
     @Autowired
     S3Operations s3;
 
+    @Autowired
+    DynamoDbOperations dynamoDb;
+
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     LocalStackConnectionDetails connectionDetails;
@@ -39,6 +43,14 @@ class SpringCloudRefresherApplicationTests {
     @Test
     @DisplayName("Make sure the application stands up")
     void contextLoads() {
+    }
+
+    @Test
+    @DisplayName("Exercise DynamoDB calls")
+    void testDynamoDB() {
+        assertNotNull(connectionDetails);
+        assertNotNull(dynamoDb);
+        var i = 0;
     }
 
     @Test
