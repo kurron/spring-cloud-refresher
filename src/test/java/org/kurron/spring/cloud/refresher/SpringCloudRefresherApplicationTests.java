@@ -12,24 +12,20 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.model.TableClass;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -39,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Import(TestcontainersConfiguration.class)
@@ -147,10 +144,15 @@ class SpringCloudRefresherApplicationTests {
         assertEquals(saved, allItems.stream().findFirst().orElseThrow().items().stream().findFirst().orElseThrow(), "Item was not found!");
         var loaded = dynamoDb.load(Key.builder().partitionValue(saved.id).build(), Person.class);
         assertEquals(saved, loaded, "Items don't match!");
-        loaded.setFirstName("Sansa");
+        var newFirstName = Long.toHexString(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE));
+        loaded.setFirstName(newFirstName);
         var mutated = dynamoDb.update(loaded);
-        assertEquals("Sansa", mutated.firstName);
-        var i = 0;
+        assertEquals(newFirstName, mutated.firstName);
+        var deleted = dynamoDb.delete(mutated);
+        var shouldNotExist = dynamoDb.load(Key.builder().partitionValue(deleted.id).build(), Person.class);
+        assertNull(shouldNotExist, "Item should not be in the table!");
+        var deleteResponse = dynamoDbClient.deleteTable(DeleteTableRequest.builder().tableName(table).build());
+        assertEquals(table, deleteResponse.tableDescription().tableName(), "Table names don't match!");
     }
 
     @Test
