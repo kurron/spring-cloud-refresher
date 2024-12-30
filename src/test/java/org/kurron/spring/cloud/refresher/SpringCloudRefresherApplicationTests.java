@@ -11,9 +11,12 @@ import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
@@ -25,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -64,9 +68,9 @@ class SpringCloudRefresherApplicationTests {
     // Records are not supported so we have to go old school and use a class with mutators
     @DynamoDbBean
     public static class Person {
-        String id; // partition key
-        String firstName; // not part of the ky
-        String lastName; // sort key
+        private String id; // partition key
+        private String firstName; // not part of the ky
+        private String lastName; // sort key
 
         public Person() {
             // required for Spring
@@ -95,6 +99,7 @@ class SpringCloudRefresherApplicationTests {
             this.firstName = firstName;
         }
 
+        @DynamoDbSortKey
         public String getLastName() {
             return lastName;
         }
@@ -129,8 +134,8 @@ class SpringCloudRefresherApplicationTests {
         // document type (list is ordered array, map is JSON)
         var table = "person"; // default behavior is snake case of the entity
         var createResponse = dynamoDbClient.createTable(CreateTableRequest.builder().tableName(table)
-                                                                                    .keySchema(KeySchemaElement.builder().attributeName("id").keyType(KeyType.HASH).build(),KeySchemaElement.builder().attributeName("lastName").keyType(KeyType.RANGE).build())
-                                                                                    .attributeDefinitions(AttributeDefinition.builder().attributeName("id").attributeType(ScalarAttributeType.S).build(),AttributeDefinition.builder().attributeName("lastName").attributeType(ScalarAttributeType.S).build())
+                                                                                    .keySchema(KeySchemaElement.builder().attributeName("id").keyType(KeyType.HASH).build())
+                                                                                    .attributeDefinitions(AttributeDefinition.builder().attributeName("id").attributeType(ScalarAttributeType.S).build())
                                                                                     .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build())
                                                                                     .build());
         assertEquals(table, createResponse.tableDescription().tableName(), "Table names don't match!");
@@ -138,7 +143,13 @@ class SpringCloudRefresherApplicationTests {
         var saved = dynamoDb.save(toSave);
         var allItems = dynamoDb.scanAll(Person.class);
         assertEquals(saved, allItems.stream().findFirst().orElseThrow().items().stream().findFirst().orElseThrow(), "Item was not found!");
-        //Person loaded = dynamoDb.load(Key.builder().partitionValue(saved.id.toString()).build(), Person.class);
+        Person loaded = dynamoDb.load(Key.builder().partitionValue(saved.id).build(), Person.class);
+        assertEquals(saved, loaded, "Items don't match!");
+        //var mutated = dynamoDb.update(new Person(saved.id, "Sansa", saved.lastName));
+/*
+        Map<String, AttributeValue> map = Map.of("id", AttributeValue.builder().s(saved.id).build());
+        var getResponse = dynamoDbClient.getItem(GetItemRequest.builder().tableName(table).key(map).build());
+*/
         var i = 0;
     }
 
