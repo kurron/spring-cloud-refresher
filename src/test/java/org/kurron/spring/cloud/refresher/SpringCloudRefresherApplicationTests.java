@@ -158,7 +158,7 @@ class SpringCloudRefresherApplicationTests {
         assertEquals(saved, allItems.stream().findFirst().orElseThrow().items().stream().findFirst().orElseThrow(), "Item was not found!");
         var loaded = dynamoDb.load(Key.builder().partitionValue(saved.id).build(), Person.class);
         assertEquals(saved, loaded, "Items don't match!");
-        var newFirstName = Long.toHexString(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE));
+        var newFirstName = randomHexString();
         loaded.setFirstName(newFirstName);
         var mutated = dynamoDb.update(loaded);
         assertEquals(newFirstName, mutated.firstName);
@@ -174,12 +174,12 @@ class SpringCloudRefresherApplicationTests {
     void testS3() throws IOException {
         assertNotNull(connectionDetails);
         assertNotNull(s3);
-        var bucket = Long.toHexString(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE));
+        var bucket = randomHexString();
         assertFalse( s3.bucketExists(bucket), "Should never exist!");
         assertNotNull(s3.createBucket(bucket), "Bucket was not created!");
         byte[] buffer = new byte[256];
         ThreadLocalRandom.current().nextBytes(buffer);
-        var key = Long.toHexString(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE));
+        var key = randomHexString();
         var resource = s3.upload(bucket, key, new ByteArrayInputStream(buffer), ObjectMetadata.builder().contentType("application/octet-stream").build());
         assertTrue(resource.exists(), "Resource should exist!");
         assertEquals("application/octet-stream", resource.contentType());
