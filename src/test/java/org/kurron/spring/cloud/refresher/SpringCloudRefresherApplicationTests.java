@@ -1,8 +1,11 @@
 package org.kurron.spring.cloud.refresher;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.awspring.cloud.dynamodb.DynamoDbOperations;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3Operations;
+import io.awspring.cloud.sqs.operations.SendResult;
+import io.awspring.cloud.sqs.operations.SqsOperations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Objects;
@@ -54,6 +58,9 @@ class SpringCloudRefresherApplicationTests {
     @Autowired
     DynamoDbClient dynamoDbClient;
 
+    @Autowired
+    SqsOperations sqs;
+
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     LocalStackConnectionDetails connectionDetails;
@@ -63,7 +70,9 @@ class SpringCloudRefresherApplicationTests {
     void contextLoads() {
     }
 
-    // Records are not supported so we have to go old school and use a class with mutators
+    record PointToPointMessage(@JsonProperty("message") String message, @JsonProperty("when") Instant when) {}
+
+    // Records are not supported, so we have to go old school and use a class with mutators
     @DynamoDbBean
     public static class Person {
         private String id; // partition key
@@ -180,6 +189,21 @@ class SpringCloudRefresherApplicationTests {
         s3.deleteObject(bucket, key);
         s3.deleteBucket(bucket);
         assertFalse(s3.bucketExists(bucket), "Bucket should have been deleted!");
+    }
+
+    @Test
+    @DisplayName("Exercise SQS calls")
+    void testSQS() {
+        assertNotNull(sqs);
+        var payload = new PointToPointMessage(randomHexString(), Instant.now());
+        SendResult<PointToPointMessage> result = sqs.send(to -> to.queue(randomHexString()).payload(payload).header("custom-header", "value").delaySeconds(1));
+        assertTrue(result.message().getHeaders().containsKey("custom-header"), "Custom header not found!");
+        assertEquals(payload.message, result.message().getPayload().message, "Message values don't match!");
+        var i = 0;
+    }
+
+    private String randomHexString() {
+        return Long.toHexString(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE));
     }
 
     @Test
