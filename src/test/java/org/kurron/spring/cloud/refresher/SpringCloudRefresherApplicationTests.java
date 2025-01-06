@@ -77,6 +77,7 @@ class SpringCloudRefresherApplicationTests {
     record PointToPointMessage(@JsonProperty("message") String message, @JsonProperty("when") Instant when) {}
 
     // Records are not supported, so we have to go old school and use a class with mutators
+    @SuppressWarnings("unused")
     @DynamoDbBean
     public static class Person {
         private String id; // partition key
