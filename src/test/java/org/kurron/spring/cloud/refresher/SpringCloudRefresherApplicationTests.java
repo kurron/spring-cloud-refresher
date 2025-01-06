@@ -24,6 +24,8 @@ import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -63,6 +65,9 @@ class SpringCloudRefresherApplicationTests {
 
     @Autowired
     SqsOperations sqs;
+
+    @Autowired
+    private SecretsManagerClient secretsManagerClient;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -212,6 +217,17 @@ class SpringCloudRefresherApplicationTests {
         assertTrue(received.orElseThrow().getHeaders().containsKey(header), "Custom header not found!");
         assertTrue(received.orElseThrow().getHeaders().containsValue(value), "Custom header value not found!");
         assertEquals(payload.message, received.orElseThrow().getPayload().message, "Message values don't match!");
+    }
+
+    @Test
+    @DisplayName("Exercise Secrets Manager calls")
+    void testSecretsManager() {
+        assertNotNull(secretsManagerClient);
+        var name = randomHexString();
+        var value = randomHexString();
+        var secret = CreateSecretRequest.builder().name(name).secretString(value).build();
+        var response = secretsManagerClient.createSecret(secret);
+        var i = 0;
     }
 
     private String randomHexString() {

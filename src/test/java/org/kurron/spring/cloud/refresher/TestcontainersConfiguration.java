@@ -38,7 +38,7 @@ class TestcontainersConfiguration {
     @ServiceConnection // we're using a custom code to support this -- see spring.factories for a pointer
     static LocalStackContainer localStackContainer() {
         var imageName = DockerImageName.parse("localstack/localstack:latest");
-        return new LocalStackContainer(imageName).withServices(LocalStackContainer.Service.S3, LocalStackContainer.Service.DYNAMODB, LocalStackContainer.Service.SQS)
+        return new LocalStackContainer(imageName).withServices(LocalStackContainer.Service.S3, LocalStackContainer.Service.DYNAMODB, LocalStackContainer.Service.SQS, LocalStackContainer.Service.SECRETSMANAGER)
                                                  .withLogConsumer(outputFrame -> log.info(outputFrame.getUtf8StringWithoutLineEnding()));
     }
 
@@ -50,6 +50,7 @@ class TestcontainersConfiguration {
             registry.add("spring.cloud.aws.s3.endpoint", container::getEndpoint);
             registry.add("spring.cloud.aws.dynamodb.endpoint", container::getEndpoint);
             registry.add("spring.cloud.aws.sqs.endpoint", container::getEndpoint);
+            registry.add("spring.cloud.aws.secretsmanager.endpoint", container::getEndpoint);
         };
     }
 

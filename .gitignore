@@ -32,3 +32,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### random files ###
+src/test/java/org/kurron/spring/cloud/refresher/PalindromTest.java
