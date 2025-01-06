@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.messaging.Message;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -27,10 +28,12 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -70,6 +73,7 @@ class SpringCloudRefresherApplicationTests {
     void contextLoads() {
     }
 
+    // luckily Jackson can handle records, making life much simpler
     record PointToPointMessage(@JsonProperty("message") String message, @JsonProperty("when") Instant when) {}
 
     // Records are not supported, so we have to go old school and use a class with mutators
@@ -196,10 +200,17 @@ class SpringCloudRefresherApplicationTests {
     void testSQS() {
         assertNotNull(sqs);
         var payload = new PointToPointMessage(randomHexString(), Instant.now());
-        SendResult<PointToPointMessage> result = sqs.send(to -> to.queue(randomHexString()).payload(payload).header("custom-header", "value").delaySeconds(1));
-        assertTrue(result.message().getHeaders().containsKey("custom-header"), "Custom header not found!");
-        assertEquals(payload.message, result.message().getPayload().message, "Message values don't match!");
-        var i = 0;
+        var queue = randomHexString();
+        var header = randomHexString();
+        var value = randomHexString();
+        SendResult<PointToPointMessage> sent = sqs.send(to -> to.queue(queue).payload(payload).header(header, value));
+        assertTrue(sent.message().getHeaders().containsKey(header), "Custom header not found!");
+        assertTrue(sent.message().getHeaders().containsValue(value), "Custom header value not found!");
+        assertEquals(payload.message, sent.message().getPayload().message, "Message values don't match!");
+        Optional<Message<PointToPointMessage>> received = sqs.receive(from -> from.queue(queue).visibilityTimeout(Duration.ofSeconds(10)).pollTimeout(Duration.ofSeconds(5)), PointToPointMessage.class);
+        assertTrue(received.orElseThrow().getHeaders().containsKey(header), "Custom header not found!");
+        assertTrue(received.orElseThrow().getHeaders().containsValue(value), "Custom header value not found!");
+        assertEquals(payload.message, received.orElseThrow().getPayload().message, "Message values don't match!");
     }
 
     private String randomHexString() {
