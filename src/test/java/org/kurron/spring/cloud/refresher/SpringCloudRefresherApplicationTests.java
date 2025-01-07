@@ -26,7 +26,6 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
-import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -224,12 +223,10 @@ class SpringCloudRefresherApplicationTests {
     @DisplayName("Exercise Secrets Manager calls")
     void testSecretsManager() {
         assertNotNull(secretsManagerClient);
-        var name = randomHexString();
         var value = randomHexString();
-        var secret = CreateSecretRequest.builder().name(name).secretString(value).description("Random string").build();
-        var createResponse = secretsManagerClient.createSecret(secret);
+        var createResponse = secretsManagerClient.createSecret(builder -> builder.name(randomHexString()).secretString(value).description("Random string"));
         assertTrue(createResponse.sdkHttpResponse().isSuccessful(), "Unable to store secret!");
-        var getResponse = secretsManagerClient.getSecretValue(GetSecretValueRequest.builder().secretId(createResponse.name()).build());
+        var getResponse = secretsManagerClient.getSecretValue(builder -> builder.secretId(createResponse.name()));
         assertTrue(getResponse.sdkHttpResponse().isSuccessful(), "Unable to fetch secret!");
         assertEquals(value, getResponse.secretString(), "Secret doesn't match!");
     }
